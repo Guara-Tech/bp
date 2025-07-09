@@ -6,6 +6,8 @@ An automation tool for stress-free online shopping experiences.
 
 BuyPal automates online purchases to reduce anxiety and decision fatigue. It handles the entire checkout process for you, from product selection to payment confirmation.
 
+![alt text](pawelzmarlak-2025-07-09T20_38_14.262Z.png)
+
 ### Why BuyPal?
 
 - Eliminates repetitive checking and verification steps
@@ -15,6 +17,16 @@ BuyPal automates online purchases to reduce anxiety and decision fatigue. It han
 
 > [!TIP]
 > To use this tool, you'll need to log in manually and complete any additional security steps, such as MFA, validation, and facial recognition. This tool only handles the buying process.
+
+### Web Interface
+
+BuyPal includes a user-friendly web interface that allows you to:
+
+1. Create a list of products you're considering
+2. Let BuyPal randomly select one item from your list
+3. Automatically complete the purchase process
+
+To access the web interface, simply navigate to http://localhost:3000 after starting the server.
 
 ### Supported Platforms
 
