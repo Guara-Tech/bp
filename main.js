@@ -45,8 +45,6 @@ logger.info('Connecting browser over CDP...');
 
                 if (handler) {
                     logger.info(`Using ${domain} handler to buy ${item}`);
-
-                    // Call the buyItem method (non-blocking)
                     handler.buyItem(item).then(success => {
                         if (success) {
                             logger.info(`Successfully processed purchase for ${item} on ${domain}`);
@@ -57,7 +55,6 @@ logger.info('Connecting browser over CDP...');
                         logger.error(`Error in purchase process: ${error.message}`);
                     });
                 } else {
-                    // No handler available, just navigate to the site
                     logger.warn(`No handler available for ${domain}, manual interaction required`);
                 }
 
