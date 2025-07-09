@@ -63,9 +63,3 @@ Contributions to improve the tool or add support for more platforms are welcome!
 ## License
 
 [MIT License](LICENSE)
-git init
-git add .
-git commit -m "first commit"
-git branch -M main
-git remote add origin git@github.com:Guara-Tech/bp.git
-git push -u origin main
