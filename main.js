@@ -1,4 +1,3 @@
-// Load environment variables from .env file
 require('dotenv').config();
 
 const { chromium } = require('@playwright/test');
@@ -11,6 +10,7 @@ const WebsiteFactory = require('./websites/index');
 
 const app = express();
 app.use(bodyParser.json());
+app.use(express.static('public'));
 const port = 3000;
 
 logger.info('Starting main application...');
@@ -23,14 +23,14 @@ logger.info('Connecting browser over CDP...');
         logger.info(`Browser contexts available: ${browser.contexts().length}`);
         const currentContext = browser.contexts()[0];
 
-        app.get('/buy/:domain/:item', async function (req, res) {
-            const domain = req.params.domain;
+        app.get('/buy/:item', async function (req, res) {
             const item = req.params.item;
+            const domain = new URL(item).hostname;
             const url = domain.includes('.') ? `https://${domain}` : `https://${domain}.com`;
 
             logger.info(`Buying item: ${item} on domain: ${domain}`);
             logger.info(`Navigating to domain: ${domain} (URL: ${url})`);
-            
+
             try {
                 const page = await currentContext.newPage();
 
@@ -39,13 +39,13 @@ logger.info('Connecting browser over CDP...');
                     message: `Purchase process initiated for ${item} on ${domain}`,
                     hasHandler: WebsiteFactory.hasHandler(domain)
                 });
-                
+
                 await page.goto(item);
                 const handler = WebsiteFactory.getHandler(domain, page);
-                
+
                 if (handler) {
                     logger.info(`Using ${domain} handler to buy ${item}`);
-                    
+
                     // Call the buyItem method (non-blocking)
                     handler.buyItem(item).then(success => {
                         if (success) {
@@ -60,7 +60,7 @@ logger.info('Connecting browser over CDP...');
                     // No handler available, just navigate to the site
                     logger.warn(`No handler available for ${domain}, manual interaction required`);
                 }
-                
+
             } catch (error) {
                 logger.error(`Error processing buy request: ${error.message}`);
                 if (!res.headersSent) {
