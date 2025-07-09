@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BuyPal - One-Click Shopping Assistant</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+        }
+
+        .card {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-control,
+        .form-control:focus {
+            background-color: #2d2d2d;
+            color: #e0e0e0;
+            border-color: #444;
+        }
+
+        .form-control::placeholder {
+            color: #999;
+        }
+
+        .url-item {
+            background-color: #2d2d2d;
+            border-left: 3px solid #0d6efd;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            word-break: break-all;
+        }
+
+        .brand-logo {
+            font-size: 2rem;
+            margin-right: 15px;
+            color: #0d6efd;
+        }
+
+        .navbar-brand {
+            font-size: 1.75rem;
+            font-weight: 600;
+        }
+
+        .list-empty {
+            color: #999;
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        #status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .btn-random {
+            background: linear-gradient(135deg, #0d6efd 0%, #0099ff 100%);
+            border: none;
+            font-weight: 500;
+        }
+
+        .btn-random:hover {
+            background: linear-gradient(135deg, #0b5ed7 0%, #0077cc 100%);
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow mb-4">
+        <div class="container">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-cart-check brand-logo"></i>
+                <span class="navbar-brand">BuyPal</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <div class="card shadow-lg mb-4">
+            <div class="card-header bg-dark">
+                <h5 class="mb-0 text-white">Add Product URL</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="urlInput" class="form-label">Enter Product URL:</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                        <input type="url" class="form-control" id="urlInput"
+                            placeholder="https://www.example.com/product/123" required>
+                        <button class="btn btn-primary" id="addUrl">
+                            <i class="bi bi-plus-lg"></i> Add
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-lg">
+            <div class="card-header bg-dark d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-white">Your Shopping List</h5>
+                <span class="badge bg-primary" id="itemCount">0 items</span>
+            </div>
+            <div class="card-body">
+                <div id="urlListContainer">
+                    <ul id="urlList" class="list-unstyled"></ul>
+                </div>
+
+                <div id="status" class="alert mt-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize or retrieve stored URLs
+            let urls = JSON.parse(localStorage.getItem('buypalUrls')) || [];
+            updateUrlList();
+
+            // Enter key on URL input
+            document.getElementById('urlInput').addEventListener('keypress', function (event) {
+                if (event.key === 'Enter') {
+                    document.getElementById('addUrl').click();
+                }
+            });
+
+            // Add URL to list
+            document.getElementById('addUrl').addEventListener('click', function () {
+                const urlInput = document.getElementById('urlInput');
+                const url = urlInput.value.trim();
+
+                if (!url) {
+                    showStatus('Please enter a valid URL', 'danger');
+                    return;
+                }
+
+                try {
+                    new URL(url); // Validate URL format
+                    urls.push(url);
+                    localStorage.setItem('buypalUrls', JSON.stringify(urls));
+                    urlInput.value = '';
+                    updateUrlList();
+                    showStatus('URL added successfully!', 'success');
+                } catch (e) {
+                    showStatus('Please enter a valid URL', 'danger');
+                }
+            });
+
+            // Helper function to update the URL list in the UI
+            function updateUrlList() {
+                const urlList = document.getElementById('urlList');
+                const itemCount = document.getElementById('itemCount');
+                urlList.innerHTML = '';
+
+                // Update count badge
+                itemCount.textContent = `${urls.length} item${urls.length !== 1 ? 's' : ''}`;
+
+                if (urls.length === 0) {
+                    urlList.innerHTML = '<div class="list-empty"><i class="bi bi-cart"></i> Your shopping list is empty</div>';
+                    return;
+                }
+
+                urls.forEach((url, index) => {
+                    try {
+                        const urlObj = new URL(url);
+
+                        const li = document.createElement('li');
+                        li.className = 'url-item mb-3';
+
+                        // Create URL display with favicon
+                        const itemContent = document.createElement('div');
+                        itemContent.className = 'd-flex flex-column flex-grow-1';
+
+                        const hostLine = document.createElement('div');
+                        hostLine.className = 'd-flex align-items-center mb-1';
+
+                        const favicon = document.createElement('img');
+                        favicon.src = `https://www.google.com/s2/favicons?domain=${urlObj.hostname}`;
+                        favicon.className = 'me-2';
+                        favicon.width = 16;
+                        favicon.height = 16;
+
+                        const hostText = document.createElement('strong');
+                        hostText.textContent = urlObj.hostname;
+                        hostText.className = 'text-primary';
+
+                        hostLine.appendChild(favicon);
+                        hostLine.appendChild(hostText);
+                        itemContent.appendChild(hostLine);
+
+                        const urlText = document.createElement('div');
+                        urlText.textContent = url;
+                        urlText.className = 'text-truncate small';
+                        itemContent.appendChild(urlText);
+
+                        li.appendChild(itemContent);
+
+                        // Create delete button
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'btn btn-sm btn-outline-danger ms-2';
+                        deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
+                        deleteBtn.title = 'Remove from list';
+                        deleteBtn.addEventListener('click', function () {
+                            urls.splice(index, 1);
+                            localStorage.setItem('buypalUrls', JSON.stringify(urls));
+                            updateUrlList();
+                            showStatus('Item removed from list', 'info');
+                        });
+
+                        li.appendChild(deleteBtn);
+                        urlList.appendChild(li);
+                    } catch (e) {
+                        // Skip invalid URLs
+                        console.error('Invalid URL in list:', url);
+                    }
+                });
+            }
+
+            // Helper function to show status messages
+            function showStatus(message, type = 'info') {
+                const statusElement = document.getElementById('status');
+                statusElement.textContent = message;
+                statusElement.className = `alert alert-${type}`;
+                statusElement.style.display = 'block';
+
+                // Auto hide after 5 seconds
+                setTimeout(() => {
+                    statusElement.style.display = 'none';
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+
+</html>
